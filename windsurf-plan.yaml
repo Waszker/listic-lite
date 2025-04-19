@@ -1,0 +1,92 @@
+# windsurf-plan.yaml
+# Project plan for AI agent to extract, normalize, and merge ingredients from recipes
+
+project:
+  name: windsurf
+  description: >
+    AI-powered ingredient parser and shopping list optimizer. Handles recipe links, plain text recipes,
+    or raw ingredient lists. Extracts, normalizes, merges, and categorizes ingredients using LangChain agents.
+
+milestones:
+  - id: input-processing
+    title: Handle various user inputs
+    description: >
+      Implement agent logic to handle different types of input:
+      - link to a website
+      - full recipe
+      - raw list of ingredients
+
+  - id: input-classification
+    title: Determine input type and required tools
+    description: >
+      Agent must classify the input type and decide which tool or processing method to use,
+      e.g. a web link should trigger an HTML content fetcher.
+
+  - id: html-parsing-integration
+    title: Integrate HTML parsing with LangChain
+    description: >
+      Follow LangChain documentation to implement HTML content extraction for recipe pages.
+      # Reference to LangChain docs or modules to be added here
+
+  - id: ingredient-normalization
+    title: Normalize ingredient names
+    description: >
+      Normalize variations in ingredient naming (e.g., "chicken breast", "boneless chicken breast", "breast of chicken").
+
+  - id: semantic-equivalence
+    title: Decide on ingredient equivalence
+    description: >
+      Agent must decide which different-named ingredients can be treated as the same product.
+      # Could use embedding similarity or rule-based logic
+
+  - id: few-shot-examples
+    title: Design few-shot prompts for unification
+    description: >
+      Prepare few-shot prompts with clear examples to help the agent unify ingredients reliably.
+      # Examples should cover edge cases and common ambiguities
+
+  - id: ingredient-merging
+    title: Merge unified ingredients
+    description: >
+      Sum quantities for equivalent ingredients in a single shopping list entry.
+
+  - id: unit-incompatibility-detection
+    title: Detect incompatible units
+    description: >
+      Identify cases where units are incompatible (e.g. 1 onion + 50g onion) and need conversion.
+
+  - id: unit-conversion
+    title: Implement unit normalization
+    description: >
+      Translate between units (e.g. convert "1 medium onion" to grams or vice versa) using heuristics or reference data.
+      # May require approximate conversion tables
+
+  - id: package-estimation
+    title: Estimate reasonable purchase units
+    description: >
+      Replace impractically small units (e.g., "1 tsp of pepper") with realistic package sizes.
+      # Can define "reasonable minimums" per product
+
+  - id: category-sorting
+    title: Sort final list by store categories
+    description: >
+      Group and order ingredients by grocery store categories (e.g., dairy, produce, spices).
+      # Sorting logic should be customizable per region or store type
+
+# Future sections may include:
+# agents:
+#   - name: IngredientNormalizer
+#     tools: [embedding_tool, conversion_tool]
+#
+# tools:
+#   - name: HtmlContentFetcher
+#     description: Tool to fetch and extract recipe content from a given URL
+
+# data:
+#   - name: conversion_table
+#     source: internal or external
+
+# prompts:
+#   - name: unify_ingredients
+#     type: few-shot
+#     examples: [...]
