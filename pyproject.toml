@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "listic-lite"
+version = "0.1.0"
+description = ""
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.13"
+beautifulsoup4 = "^4.12.3"  # Note: Changed from 4.13.4 as it doesn't exist yet
+requests = "^2.32.3"
+langchain-openai = "^0.3.14"
+langchain-community = "^0.3.21"
+pydantic = "^2.11.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
