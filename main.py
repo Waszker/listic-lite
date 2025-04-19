@@ -1,5 +1,6 @@
 from settings import EnvSettings
 
+
 def run_main() -> None:
     env_config = EnvSettings.load()
     print(env_config)
