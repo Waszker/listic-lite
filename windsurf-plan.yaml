@@ -2,7 +2,7 @@
 # Project plan for AI agent to extract, normalize, and merge ingredients from recipes
 
 project:
-  name: windsurf
+  name: listic-lite
   description: >
     AI-powered ingredient parser and shopping list optimizer. Handles recipe links, plain text recipes,
     or raw ingredient lists. Extracts, normalizes, merges, and categorizes ingredients using LangChain agents.

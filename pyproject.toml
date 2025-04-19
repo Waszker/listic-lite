@@ -1,9 +1,8 @@
 [tool.poetry]
 name = "listic-lite"
 version = "0.1.0"
-description = ""
-authors = ["Your Name <you@example.com>"]
-readme = "README.md"
+description = "AI-powered ingredient parser and shopping list optimizer"
+authors = ["Piotr Waszkiewicz <waszka23@gmail.com>"]
 package-mode = false
 
 [tool.poetry.dependencies]
@@ -13,8 +12,12 @@ requests = "^2.32.3"
 langchain-openai = "^0.3.14"
 langchain-community = "^0.3.21"
 pydantic = "^2.11.3"
-
+python-dotenv = "^1.1.0"
+Black = "^25.1.0"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
