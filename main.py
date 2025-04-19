@@ -1,10 +1,5 @@
-from settings import EnvSettings
-
-
-def run_main() -> None:
-    env_config = EnvSettings.load()
-    print(env_config)
+from ai_agent.definition import run_agent
 
 
 if __name__ == "__main__":
-    run_main()
+    run_agent()
