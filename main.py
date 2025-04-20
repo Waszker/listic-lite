@@ -1,5 +1,5 @@
 import asyncio
-from ai_agent.definition import run_agent
+from ai_agent.agent import run_agent
 
 
 if __name__ == "__main__":

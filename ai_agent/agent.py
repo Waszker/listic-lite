@@ -36,15 +36,18 @@ async def run_agent(user_inputs: List[str]):
         result = await agent_executor.ainvoke(
             {
                 "input": f"""
-You have been provided with {len(user_inputs)} text item(s). Each item could be a full recipe scraped from a website, a manually entered recipe, or just a list of ingredients. Your task is to process all items to produce a unified list of ingredients grouped by name.
+You have been provided with {len(user_inputs)} text item(s). Each item could be a full recipe scraped from a website, a manually entered recipe, or just a list of ingredients. Your task is to process all items to produce a unified list of ingredients grouped by name, paying attention to units.
 
 Follow these steps precisely:
 
-1. For each text item decide how to process it in order to retrieve the recipe text.
+1. For each text item decide how to process it in order to retrieve the recipe text. Use `fetch_recipes_from_urls` for found URLs.
 2. For each recipe text, use the `extract_ingredients` tool to get its list of ingredients. Collect all extracted ingredient lists.
 3. Pass the complete collection of extracted ingredient lists to the `unify_ingredient_names` tool.
-4. Take the unified list output from the previous step and pass it to the `produce_final_result` tool.
-5. Return the final grouped ingredients dictionary produced by `produce_final_result`.
+4. **Examine the unified list:** Check if any ingredient name appears multiple times with different units.
+   - If units are compatible and convertible (e.g., 'ml' and 'l', 'g' and 'kg'), standardize them to a single common unit (e.g., convert everything to 'ml' or 'g') and sum the quantities. Update the list accordingly. *Ensure quantity parsing/conversion is handled correctly if possible.*
+   - If units are incompatible (e.g., 'liters' vs 'cartons', 'grams' vs 'pieces'), keep the entries separate but ensure they are clearly identifiable in the next step.
+5. Take the potentially adjusted list from the previous step and pass it to the `produce_final_result` tool. This tool will group the ingredients.
+6. Return the final grouped ingredients dictionary produced by `produce_final_result`. The result should clearly reflect any standardization performed or note any unresolved unit incompatibilities.
 
 Input Texts:
 {recipes_prompt}

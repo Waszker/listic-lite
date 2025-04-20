@@ -11,7 +11,6 @@ from ai_agent.config import llm
 from ai_agent.data_models import Ingredient, IngredientsOutput, IngredientNamesOutput
 
 
-@tool
 async def fetch_recipe_from_url(url: str) -> str:
     """Fetches recipe text from the given URL using Playwright to handle dynamic content."""
     print(f"Fetching recipe from URL with Playwright: {url}")
@@ -50,6 +49,15 @@ async def fetch_recipe_from_url(url: str) -> str:
 
     return recipe_content.get_text(separator="\n", strip=True)
 
+
+@tool
+async def fetch_recipes_from_urls(urls: List[str]) -> List[str]:
+    """
+    Fetches recipe texts from the given URLs using Playwright.
+    
+    Each URL is processed asynchronously in parallel.
+    """
+    return await asyncio.gather(*[fetch_recipe_from_url(url) for url in urls])
 
 @tool
 async def extract_ingredients(recipe_text: str) -> IngredientsOutput:
@@ -122,7 +130,7 @@ async def produce_final_result(ingredients_list: list[IngredientsOutput]) -> dic
 
 
 tools = [
-    fetch_recipe_from_url,
+    fetch_recipes_from_urls,
     extract_ingredients,
     unify_ingredient_names,
     produce_final_result,
