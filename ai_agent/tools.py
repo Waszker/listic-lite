@@ -238,7 +238,7 @@ def sum_quantities(ingredient1: Ingredient, ingredient2: Ingredient) -> float:
     try:
         return float(ingredient1.quantity) + float(ingredient2.quantity)
     except ValueError:
-        return "Error: Cannot parse quantity, keep them separate"
+        raise ValueError("Cannot parse quantity. Ensure both ingredients have valid numeric quantities.")
 
 
 tools = [
