@@ -4,7 +4,7 @@ from ai_agent.agent import run_agent
 
 if __name__ == "__main__":
     example_inputs = [
-        "https://www.kwestiasmaku.com/przepis/kurczak-w-sosie-curry",
+        "https://www.kwestiasmaku.com/przepis/kurczak-w-sosie-curry/",
         """
         **Simple Pancake Recipe**
 
@@ -48,4 +48,4 @@ if __name__ == "__main__":
         "https://headbangerskitchen.com/indian-curry-chicken-curry/",
     ]
 
-    asyncio.run(run_agent(example_inputs[3]))
+    asyncio.run(run_agent(example_inputs[3:4]))
