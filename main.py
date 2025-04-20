@@ -30,9 +30,18 @@ if __name__ == "__main__":
         Papryka czerwona 1
         Olej roślinny
         """,
+        """
+        Do zrobienia zakupów potrzebujemy:
+        Pierś z kurczaka: 500g
+        Pałki kurczaka: 6szt
+        Cebula: pół małej cebuli
+        Czosnek: 3 główki
+        Marchew: sto gramów
+        Papryka czerwona: 120g
+        """,
         "https://www.allrecipes.com/recipe/46822/indian-chicken-curry-ii/",
         "https://www.indianhealthyrecipes.com/chicken-curry/",
         "https://headbangerskitchen.com/indian-curry-chicken-curry/",
     ]
 
-    asyncio.run(run_agent(example_inputs))
+    asyncio.run(run_agent(example_inputs[1:4]))

@@ -41,10 +41,12 @@ You have been provided with {len(user_inputs)} text item(s). Each item could be 
 Follow these steps precisely:
 
 1. For each text item decide how to process it in order to retrieve the recipe text. Use `fetch_recipes_from_urls` for found URLs.
-2. For each recipe text, use the `extract_ingredients` tool to get its list of ingredients. Collect all extracted ingredient lists.
+2. Use the `extract_ingredients` tool to get its list of ingredients from the recipes. Collect all extracted ingredient lists.
 3. Pass the complete collection of extracted ingredient lists to the `unify_ingredient_names` tool.
 4. **Examine the unified list:** Check if any ingredient name appears multiple times with different units.
-   - If units are compatible and convertible (e.g., 'ml' and 'l', 'g' and 'kg'), standardize them to a single common unit (e.g., convert everything to 'ml' or 'g') and sum the quantities. Update the list accordingly. *Ensure quantity parsing/conversion is handled correctly if possible.*
+   - If units are compatible and convertible (e.g., 'ml' and 'l', 'g' and 'kg'), standardize them to a single common unit, but *do not sum the quantities*:
+     - prefer numeric units expressed in grams or milliliters, try to convert other units to grams or milliliters
+     - use `handle_unknown_units` tool to handle ingredients with unknown units
    - If units are incompatible (e.g., 'liters' vs 'cartons', 'grams' vs 'pieces'), keep the entries separate but ensure they are clearly identifiable in the next step.
 5. Take the potentially adjusted list from the previous step and pass it to the `produce_final_result` tool. This tool will group the ingredients.
 6. Return the final grouped ingredients dictionary produced by `produce_final_result`. The result should clearly reflect any standardization performed or note any unresolved unit incompatibilities.
