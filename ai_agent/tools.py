@@ -3,9 +3,49 @@ from collections import defaultdict
 from langchain_core.tools import tool
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
+from bs4 import BeautifulSoup
+from playwright.sync_api import sync_playwright
 
 from ai_agent.config import llm
 from ai_agent.data_models import Ingredient, IngredientsOutput, IngredientNamesOutput
+
+
+@tool
+def fetch_recipe_from_url(url: str) -> str:
+    """Fetches recipe text from the given URL using Playwright to handle dynamic content."""
+    print(f"Fetching recipe from URL with Playwright: {url}")
+    page_content = ""
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)  # Wait for DOM, 60s timeout
+            # Optional: Add a small wait for potentially slow-loading JS
+            page.wait_for_timeout(2000)
+            page_content = page.content()
+            browser.close()
+    except Exception as e:
+        print(f"Playwright failed to fetch {url}: {e}")
+        # Fallback or return error message
+        return f"Error: Could not fetch content from {url}. Reason: {e}"
+
+    if not page_content:
+        return f"Error: No content fetched from {url}"
+
+    # Use BeautifulSoup to parse the HTML fetched by Playwright
+    soup = BeautifulSoup(page_content, "html.parser")
+    recipe_content = (
+        soup.find(class_=lambda x: x and "recipe" in x.lower())
+        or soup.find(id=lambda x: x and "recipe" in x.lower())
+        or soup.find("article")
+        or soup.body
+    )
+    if not recipe_content:
+        # Fallback to returning all text if specific containers aren't found
+        print(f"Specific recipe container not found for {url}, falling back to full body text.")
+        return soup.get_text(separator="\n", strip=True)
+
+    return recipe_content.get_text(separator="\n", strip=True)
 
 
 @tool
@@ -88,6 +128,7 @@ def produce_final_result(ingredients_list: list[IngredientsOutput]) -> dict[str,
 
 # Define the list of tools available to the agent
 tools = [
+    fetch_recipe_from_url,
     extract_ingredients,
     unify_ingredient_names,
     produce_final_result,

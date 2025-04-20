@@ -15,6 +15,10 @@ milestones:
       - link to a website
       - full recipe
       - raw list of ingredients
+    details: >
+      Implement separate tools for each type of input:
+      - web links should be loaded and parsed by beautifulsoup
+      - full recipe and explicit ingredient list should be parsed by llm agent itself
 
   - id: input-classification
     title: Determine input type and required tools

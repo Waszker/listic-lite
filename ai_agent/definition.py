@@ -1,95 +1,57 @@
-import requests
-from bs4 import BeautifulSoup
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.agents import AgentExecutor, create_openai_functions_agent
+from typing import List
 
 # Import necessary components from other modules
-from .config import llm
-from .tools import tools  # Import the list of tools
-
-# PREFIX constant needs to be defined or imported if used
-# Assuming PREFIX might be a system prompt part, define it or handle its import
-PREFIX = "You are a helpful assistant."  # Example definition, adjust as needed
+from ai_agent.config import llm, SYSTEM_PROMPT_PREFIX
+from ai_agent.tools import tools
 
 
-def fetch_recipe_text(url: str) -> str:
-    """Fetches recipe text from the given URL"""
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/122.0.0.0 Safari/537.36"
-        ),
-        "Accept": (
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif," "image/webp,image/apng,*/*;q=0.8"
-        ),
-        "Accept-Language": "en-US,en;q=0.9",
-        "Referer": "https://www.google.com/",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-    }
-    # Use the imported requests library
-    session = requests.Session()
-    session.headers.update(headers)
-    response = session.get(url, timeout=100)
-    soup = BeautifulSoup(response.text, "html.parser")
-    return soup.body.get_text(separator="\n", strip=True)
+def run_agent(user_inputs: List[str]):
+    """
+    Runs the LangChain agent to extract, unify, and group ingredients.
+    """
 
+    if not user_inputs:
+        print("No valid recipe item could be processed. Exiting.")
+        return
 
-def run_agent() -> None:
-    urls = [
-        "https://www.kwestiasmaku.com/przepis/kurczak-w-sosie-curry",
-        # "https://www.allrecipes.com/recipe/46822/indian-chicken-curry-ii/",
-        # "https://www.indianhealthyrecipes.com/chicken-curry/",
-        "https://headbangerskitchen.com/indian-curry-chicken-curry/",
-    ]
-    recipes = []
-    for url in urls:
-        try:
-            recipes.append(fetch_recipe_text(url))
-        except Exception as e:
-            print(f"Failed to fetch {url}: {e}")
-            # Optionally continue or handle the error appropriately
+    recipes_prompt = "\n\n---\n\n".join([f"***Input Item #{i}***\n{content}" for i, content in enumerate(user_inputs)])
 
-    if not recipes:
-        print("No recipes fetched successfully. Exiting.")
-        exit()
-
-    recipes_prompt = "\n\n".join([f"***Recipe #{i}***\n{recipe}" for i, recipe in enumerate(recipes)])
-
-    # Define the prompt for the agent
-    # Ensure PREFIX is defined appropriately above or imported
     prompt = ChatPromptTemplate.from_messages(
         [
-            ("system", PREFIX),
+            ("system", SYSTEM_PROMPT_PREFIX),
             ("user", "{input}"),
             MessagesPlaceholder(variable_name="agent_scratchpad"),
         ]
     )
 
-    # Create the agent
     agent = create_openai_functions_agent(llm, tools, prompt)
 
-    # Create the agent executor
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)
 
-    # Invoke the agent
+    print("--- Invoking Agent ---")
     try:
         result = agent_executor.invoke(
             {
                 "input": f"""
-Here are {len(recipes)} recipes. Follow these steps exactly:
+You have been provided with {len(user_inputs)} text item(s). Each item could be a full recipe scraped from a website, a manually entered recipe, or just a list of ingredients. Your task is to process all items to produce a unified list of ingredients grouped by name.
 
-1. Extract the ingredients from each recipe using the extract_ingredients tool.
-2. Pass the complete list of extracted ingredients to the unify_ingredient_names tool.
-3. Take the unified list and pass it to the produce_final_result tool.
-4. Return the final groupings.
+Follow these steps precisely:
 
-Recipe texts:
+1. For each text item decide how to process it in order to retrieve the recipe text.
+2. For each recipe text, use the `extract_ingredients` tool to get its list of ingredients. Collect all extracted ingredient lists.
+3. Pass the complete collection of extracted ingredient lists to the `unify_ingredient_names` tool.
+4. Take the unified list output from the previous step and pass it to the `produce_final_result` tool.
+5. Return the final grouped ingredients dictionary produced by `produce_final_result`.
+
+Input Texts:
 {recipes_prompt}
 """
             }
         )
+        print("\n--- Agent Result ---")
         print(result)
+        print("--- Agent Finished ---")
     except Exception as e:
         print(f"Agent execution failed: {e}")
