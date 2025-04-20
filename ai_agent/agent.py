@@ -29,7 +29,9 @@ async def run_agent(user_inputs: List[str]):
 
     agent = create_openai_functions_agent(llm, tools, prompt)
 
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)
+    agent_executor = AgentExecutor(
+        agent=agent, tools=tools, verbose=True, handle_parsing_errors=True, max_iterations=50
+    )
 
     print("--- Invoking Agent ---")
     try:
@@ -43,13 +45,15 @@ Follow these steps precisely:
 1. For each text item decide how to process it in order to retrieve the recipe text. Use `fetch_recipes_from_urls` for found URLs.
 2. Use the `extract_ingredients` tool to get its list of ingredients from the recipes. Collect all extracted ingredient lists.
 3. Pass the complete collection of extracted ingredient lists to the `unify_ingredient_names` tool.
-4. **Examine the unified list:** Check if any ingredient name appears multiple times with different units.
-   - If units are compatible and convertible (e.g., 'ml' and 'l', 'g' and 'kg'), standardize them to a single common unit, but *do not sum the quantities*:
-     - prefer numeric units expressed in grams or milliliters, try to convert other units to grams or milliliters
+4. Take the potentially adjusted list from the previous step and pass it to the `produce_final_result` tool. This tool will group the ingredients.
+5. **Examine the unified list:** Check if any ingredient name appears multiple times with different units.
+   - If units are compatible and convertible (e.g., 'ml' and 'l', 'g' and 'kg'), standardize them to a single common unit, always using *grams* or *milliliters* (e.g. 1kg = 1000g, 1l = 1000ml).:
+     - only use numeric units expressed in *grams* or *milliliters*, try to convert all other units to grams or milliliters
      - use `handle_unknown_units` tool to handle ingredients with unknown units
+     - do not sum the quantities of the same ingredient, even when units are compatible at this stage
    - If units are incompatible (e.g., 'liters' vs 'cartons', 'grams' vs 'pieces'), keep the entries separate but ensure they are clearly identifiable in the next step.
-5. Take the potentially adjusted list from the previous step and pass it to the `produce_final_result` tool. This tool will group the ingredients.
-6. Return the final grouped ingredients dictionary produced by `produce_final_result`. The result should clearly reflect any standardization performed or note any unresolved unit incompatibilities.
+6. Sum the quantities of the same ingredients, using the same unit.
+7. Return the final grouped ingredients list. The result should clearly reflect any standardization performed or note any unresolved unit incompatibilities. The ingredients list must be in Polish.
 
 Input Texts:
 {recipes_prompt}

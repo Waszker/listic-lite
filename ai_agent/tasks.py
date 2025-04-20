@@ -14,9 +14,9 @@ async def fetch_recipe_from_url(url: str) -> str:
             try:
                 await page.goto(url, wait_until="domcontentloaded", timeout=60000)
             except Exception as e:
-                 print(f"Playwright page.goto timed out or failed for {url}: {e}")
-                 await browser.close()
-                 return f"Error: Could not fetch content from {url}. Reason: Page load failed or timed out."
+                print(f"Playwright page.goto timed out or failed for {url}: {e}")
+                await browser.close()
+                return f"Error: Could not fetch content from {url}. Reason: Page load failed or timed out."
 
             await asyncio.sleep(2)
             page_content = await page.content()
