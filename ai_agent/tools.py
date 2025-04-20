@@ -7,7 +7,7 @@ from langchain_core.tools import tool
 from langchain_core.output_parsers import JsonOutputParser
 from langchain.prompts import FewShotPromptTemplate, PromptTemplate
 from langchain_core.prompts import PromptTemplate
-from ai_agent.config import llm
+from ai_agent.config import llm, cheaper_llm
 from ai_agent.data_models import Ingredient, IngredientsOutput, IngredientNamesOutput, ConsolidatedIngredientOutput
 from ai_agent.tasks import fetch_recipe_from_url
 import re
@@ -39,23 +39,24 @@ UNIT_CONSOLIDATION_EXAMPLES = [
         "input": "Milk: 1 carton, 100ml",
         "output": '{{"name": "Milk", "quantity": 1, "unit": "carton"}}',
         "explanation": "Already have 1 carton, 100ml is negligible compared to a standard carton (usually 1L), buy 1 carton.",
-     },
-     {
+    },
+    {
         "input": "Salt: 1 pinch, 1 tsp",
         "output": '{{"name": "Salt", "quantity": 1, "unit": "opak."}}',
         "explanation": "1 pinch (~0.5g) + 1 tsp (~6g) = ~6.5g. Small amount, buy 1 standard package (opak.).",
-      },
-      {
-         "input": "Sugar: 200g, 1 cup",
-         "output": '{{"name": "Sugar", "quantity": 400, "unit": "g"}}',
-         "explanation": "200g + 1 cup (~200g) = 400g. Keep as grams for shopping.",
-      },
-       {
-          "input": "Chicken Breast: 1 kg, 200g",
-          "output": '{{"name": "Chicken Breast", "quantity": 1200, "unit": "g"}}',
-          "explanation": "1 kg (1000g) + 200g = 1200g. Convert kg to g and sum.",
-       }
+    },
+    {
+        "input": "Sugar: 200g, 1 cup",
+        "output": '{{"name": "Sugar", "quantity": 400, "unit": "g"}}',
+        "explanation": "200g + 1 cup (~200g) = 400g. Keep as grams for shopping.",
+    },
+    {
+        "input": "Chicken Breast: 1 kg, 200g",
+        "output": '{{"name": "Chicken Breast", "quantity": 1200, "unit": "g"}}',
+        "explanation": "1 kg (1000g) + 200g = 1200g. Convert kg to g and sum.",
+    },
 ]
+
 
 @tool
 async def fetch_recipes_from_urls(urls: list[str]) -> list[str]:
@@ -65,6 +66,7 @@ async def fetch_recipes_from_urls(urls: list[str]) -> list[str]:
     Each URL is processed asynchronously in parallel.
     """
     return await asyncio.gather(*[fetch_recipe_from_url(url) for url in urls])
+
 
 @tool
 async def extract_ingredients(recipe_texts: list[str]) -> list[IngredientsOutput]:
@@ -90,6 +92,7 @@ Recipe text:
 
     results = await asyncio.gather(*[chain.ainvoke({"recipe_text": recipe_text}) for recipe_text in recipe_texts])
     return [IngredientsOutput(**result) for result in results]
+
 
 @tool
 async def unify_ingredient_names(ingredient_list: list[IngredientsOutput]) -> list[IngredientsOutput]:
@@ -126,6 +129,7 @@ Ingredient names:
 
     return ingredient_list
 
+
 @tool
 async def group_by_ingredient_name(ingredients_list: list[IngredientsOutput]) -> dict[str, list[Ingredient]]:
     """Group multiple lists of ingredients (potentially unified) into a final dictionary keyed by common ingredient names."""
@@ -135,6 +139,7 @@ async def group_by_ingredient_name(ingredients_list: list[IngredientsOutput]) ->
             merged_ingredients[ingredient.name].append(ingredient)
 
     return dict(merged_ingredients)
+
 
 @tool
 async def consolidate_units(ingredients: list[Ingredient]) -> ConsolidatedIngredientOutput:
@@ -157,7 +162,7 @@ async def consolidate_units(ingredients: list[Ingredient]) -> ConsolidatedIngred
     if not all(ing.name.lower() == first_name for ing in ingredients):
         raise ValueError("All ingredients passed to consolidate_units must have the same name.")
 
-    ingredient_name = ingredients[0].name # Use the first ingredient's name casing
+    ingredient_name = ingredients[0].name  # Use the first ingredient's name casing
 
     # Format the input for the prompt
     input_description = f"{ingredient_name}: {', '.join([f'{ing.quantity} {ing.unit}' for ing in ingredients])}"
@@ -166,14 +171,12 @@ async def consolidate_units(ingredients: list[Ingredient]) -> ConsolidatedIngred
     # Define parser for the desired output structure
     parser = JsonOutputParser(pydantic_object=ConsolidatedIngredientOutput)
 
-    print("Defined parser")
     # Define the prompt for formatting a single example
     example_prompt = PromptTemplate(
         input_variables=["input", "output", "explanation"],
         template="Input: {input}\nOutput: {output}\nExplanation: {explanation}",
     )
 
-    print("Defined example prompt")
     # Define the prefix (instructions before examples)
     prefix = """
 You are an expert shopping list assistant. Your task is to take a list of quantities for the SAME ingredient (provided with different units) and consolidate them into a SINGLE final quantity and unit suitable for buying at a store.
@@ -192,8 +195,9 @@ Here are some examples:"""
 Now, consolidate the following ingredient quantities:
 Input: {target_input}
 
+YOU MUST conform to the output format specified below:
 {format_instructions}
-Output:""" # Ensure output is directly after the format instructions
+Output:"""  # Ensure output is directly after the format instructions
 
     # Create the FewShotPromptTemplate instance within the function call
     few_shot_prompt = FewShotPromptTemplate(
@@ -204,10 +208,9 @@ Output:""" # Ensure output is directly after the format instructions
         input_variables=["target_input"],
         partial_variables={"format_instructions": parser.get_format_instructions()},
     )
-    print("About to call llm")
 
     # Create the chain
-    chain = few_shot_prompt | llm | parser # Added the parser to the chain
+    chain = few_shot_prompt | cheaper_llm | parser  # Added the parser to the chain
 
     try:
         result_dict = await chain.ainvoke(
@@ -228,6 +231,7 @@ Output:""" # Ensure output is directly after the format instructions
         # For now, re-raise the exception for clarity.
         raise e
 
+
 @tool
 def sum_quantities(ingredient1: Ingredient, ingredient2: Ingredient) -> float:
     """
@@ -237,6 +241,7 @@ def sum_quantities(ingredient1: Ingredient, ingredient2: Ingredient) -> float:
         return float(ingredient1.quantity) + float(ingredient2.quantity)
     except ValueError:
         raise ValueError("Cannot parse quantity. Ensure both ingredients have valid numeric quantities.")
+
 
 tools = [
     fetch_recipes_from_urls,
