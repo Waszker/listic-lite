@@ -26,6 +26,12 @@ AI-powered recipe ingredient extractor and potential shopping list optimizer.
     poetry install
     ```
 
+5.  **Install Playwright Browsers:**
+    Playwright requires browser binaries to function. Install them (including OS dependencies) using:
+    ```bash
+    poetry run playwright install --with-deps
+    ```
+
 ## Running the Script
 
 To run the main script which uses the AI agent to process recipes:

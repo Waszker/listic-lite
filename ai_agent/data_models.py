@@ -25,3 +25,9 @@ class IngredientNamesOutput(BaseModel):
     ingredient_names: list[IngredientNameToCommonName] = Field(
         description="List of ingredient names in Polish language"
     )
+
+
+class UnitConversionOutput(BaseModel):
+    quantity: float = Field(description="The numeric quantity after conversion.")
+    unit: str = Field(description="The standard unit ('g' or 'ml').")
+    explanation: str = Field(description="A brief explanation of the conversion logic.")
