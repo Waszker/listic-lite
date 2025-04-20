@@ -44,14 +44,19 @@ Follow these steps precisely:
 2. Use the `extract_ingredients` tool to get list of ingredients from the recipes. Collect all extracted ingredient lists.
 3. Pass the complete collection of extracted ingredient lists to the `unify_ingredient_names` tool.
 4. Take the name-adjusted list from the previous step and pass it to the `group_by_ingredient_name` tool. This tool will group the ingredients.
-5. **Examine the unified list:** Check if any ingredient name appears multiple times with different units.
-   - If units are compatible and convertible (e.g., 'ml' and 'l', 'g' and 'kg'), standardize them to a single common unit, always using *grams* or *milliliters* (e.g. 1kg = 1000g, 1l = 1000ml).:
-     - only use numeric units expressed in *grams* or *milliliters*, try to convert all other units to grams or milliliters
-     - use `handle_unknown_units` tool to handle ingredients with unknown units
-     - do not sum the quantities of the same ingredient, even when units are compatible at this stage
-   - If units are incompatible (e.g., 'liters' vs 'cartons', 'grams' vs 'pieces'), keep the entries separate but ensure they are clearly identifiable in the next step.
-6. Sum the quantities of the same ingredients, using the same unit.
-7. Return the final grouped ingredients list. The result should clearly reflect any standardization performed or note any unresolved unit incompatibilities. The ingredients list must be in Polish.
+5. **Standardize Units within Groups:** Examine the grouped list from step 4. For each ingredient group (ingredients with the same unified name):
+   - Use the `handle_unknown_units` tool on any ingredient entry that doesn't have a standard metric unit (g, kg, ml, l) or a piece count (szt.). Aim to convert these to grams (g) or milliliters (ml).
+   - Convert all compatible metric units to their base units: kilograms (kg) to grams (g), and liters (l) to milliliters (ml). After this, units within a group should primarily be 'g', 'ml', or 'szt.' (pieces).
+
+6. **Consolidate Quantities with Shopping Logic:** Process the standardized groups to determine the final amount to purchase for each ingredient:
+   - Use the `sum_quantities` tool to aggregate quantities for the *same unit* within each ingredient group (e.g., sum all 'g' of onions, sum all 'ml' of milk, sum all 'szt.' of apples).
+   - **Apply Shopping Adjustments:**
+     - **Piece-Based Items (e.g., vegetables, fruits):** If an ingredient group has quantities in both 'szt.' (pieces) *and* 'g'/'ml', use common sense weighting (e.g., 1 onion ≈ 130g, 1 apple ≈ 80g, 1 lemon ≈ 100g) to estimate how many additional pieces the 'g'/'ml' represents. Add this estimate to the 'szt.' count and round the *total* number of pieces *up* to the nearest whole number. The final unit for this ingredient should be 'szt.'.
+     - **Spices/Herbs/Small Items (e.g., salt, pepper, baking powder):** If the total summed quantity is expressed in 'g' or 'ml' and is relatively small (e.g., under 50g/ml), determine how many standard-sized packages are needed (assume typical spice jar ≈ 20g). Round *up* to the nearest whole package. The final unit should be 'opak.' (package). If the quantity is large, keep the unit as 'g' or 'ml'.
+     - **Liquids/Flour/Sugar/Other Bulk:** Keep the total summed quantity in 'g' or 'ml'.
+   - The goal is to have a single quantity and unit per ingredient name, reflecting what needs to be bought.
+
+7. **Return Final Shopping List:** Use the `produce_final_result` tool to format the final list. Each item should have its Polish name, the calculated shopping quantity, and the final unit ('szt.', 'opak.', 'g', 'ml').
 
 Input Texts:
 {recipes_prompt}
