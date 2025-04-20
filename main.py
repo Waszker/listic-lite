@@ -38,10 +38,14 @@ if __name__ == "__main__":
         Czosnek: 3 główki
         Marchew: sto gramów
         Papryka czerwona: 120g
+        3 marchewki,
+        5 papryk żółtych,
+        karton mleka,
+        100ml. mleka,
         """,
         "https://www.allrecipes.com/recipe/46822/indian-chicken-curry-ii/",
         "https://www.indianhealthyrecipes.com/chicken-curry/",
         "https://headbangerskitchen.com/indian-curry-chicken-curry/",
     ]
 
-    asyncio.run(run_agent(example_inputs[1:4]))
+    asyncio.run(run_agent(example_inputs))
