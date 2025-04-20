@@ -1,15 +1,16 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from typing import List
+import asyncio
 
 # Import necessary components from other modules
 from ai_agent.config import llm, SYSTEM_PROMPT_PREFIX
 from ai_agent.tools import tools
 
 
-def run_agent(user_inputs: List[str]):
+async def run_agent(user_inputs: List[str]):
     """
-    Runs the LangChain agent to extract, unify, and group ingredients.
+    Runs the LangChain agent asynchronously to extract, unify, and group ingredients.
     """
 
     if not user_inputs:
@@ -32,7 +33,7 @@ def run_agent(user_inputs: List[str]):
 
     print("--- Invoking Agent ---")
     try:
-        result = agent_executor.invoke(
+        result = await agent_executor.ainvoke(
             {
                 "input": f"""
 You have been provided with {len(user_inputs)} text item(s). Each item could be a full recipe scraped from a website, a manually entered recipe, or just a list of ingredients. Your task is to process all items to produce a unified list of ingredients grouped by name.

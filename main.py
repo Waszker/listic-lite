@@ -1,3 +1,4 @@
+import asyncio
 from ai_agent.definition import run_agent
 
 
@@ -34,4 +35,4 @@ if __name__ == "__main__":
         "https://headbangerskitchen.com/indian-curry-chicken-curry/",
     ]
 
-    run_agent(example_inputs)
+    asyncio.run(run_agent(example_inputs))
