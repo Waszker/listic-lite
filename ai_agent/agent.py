@@ -1,9 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain.agents import AgentExecutor, create_openai_functions_agent
 from typing import List
-import asyncio
 
-# Import necessary components from other modules
 from ai_agent.config import llm, SYSTEM_PROMPT_PREFIX
 from ai_agent.tools import tools
 
@@ -43,9 +41,9 @@ You have been provided with {len(user_inputs)} text item(s). Each item could be 
 Follow these steps precisely:
 
 1. For each text item decide how to process it in order to retrieve the recipe text. Use `fetch_recipes_from_urls` for found URLs.
-2. Use the `extract_ingredients` tool to get its list of ingredients from the recipes. Collect all extracted ingredient lists.
+2. Use the `extract_ingredients` tool to get list of ingredients from the recipes. Collect all extracted ingredient lists.
 3. Pass the complete collection of extracted ingredient lists to the `unify_ingredient_names` tool.
-4. Take the potentially adjusted list from the previous step and pass it to the `produce_final_result` tool. This tool will group the ingredients.
+4. Take the name-adjusted list from the previous step and pass it to the `group_by_ingredient_name` tool. This tool will group the ingredients.
 5. **Examine the unified list:** Check if any ingredient name appears multiple times with different units.
    - If units are compatible and convertible (e.g., 'ml' and 'l', 'g' and 'kg'), standardize them to a single common unit, always using *grams* or *milliliters* (e.g. 1kg = 1000g, 1l = 1000ml).:
      - only use numeric units expressed in *grams* or *milliliters*, try to convert all other units to grams or milliliters

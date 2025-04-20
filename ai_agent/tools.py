@@ -142,7 +142,7 @@ Ingredient names:
 
 
 @tool
-async def produce_final_result(ingredients_list: list[IngredientsOutput]) -> dict[str, list[Ingredient]]:
+async def group_by_ingredient_name(ingredients_list: list[IngredientsOutput]) -> dict[str, list[Ingredient]]:
     """Group multiple lists of ingredients (potentially unified) into a final dictionary keyed by common ingredient names."""
     merged_ingredients = defaultdict(list)
     for ingredients in ingredients_list:
@@ -246,6 +246,6 @@ tools = [
     extract_ingredients,
     unify_ingredient_names,
     handle_unknown_units,
-    produce_final_result,
+    group_by_ingredient_name,
     sum_quantities,
 ]
