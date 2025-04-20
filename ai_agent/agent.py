@@ -44,19 +44,27 @@ Follow these steps precisely:
 2. Use the `extract_ingredients` tool to get list of ingredients from the recipes. Collect all extracted ingredient lists.
 3. Pass the complete collection of extracted ingredient lists to the `unify_ingredient_names` tool.
 4. Take the name-adjusted list from the previous step and pass it to the `group_by_ingredient_name` tool. This tool will group the ingredients.
-5. **Standardize Units within Groups:** Examine the grouped list from step 4. For each ingredient group (ingredients with the same unified name):
-   - Use the `handle_unknown_units` tool on any ingredient entry that doesn't have a standard metric unit (g, kg, ml, l) or a piece count (szt.). Aim to convert these to grams (g) or milliliters (ml).
-   - Convert all compatible metric units to their base units: kilograms (kg) to grams (g), and liters (l) to milliliters (ml). After this, units within a group should primarily be 'g', 'ml', or 'szt.' (pieces).
+5. **Group Ingredients:** Use the `group_by_ingredient_name` tool to group all ingredients (from all recipes) by their unified names.
 
-6. **Consolidate Quantities with Shopping Logic:** Process the standardized groups to determine the final amount to purchase for each ingredient:
-   - Use the `sum_quantities` tool to aggregate quantities for the *same unit* within each ingredient group (e.g., sum all 'g' of onions, sum all 'ml' of milk, sum all 'szt.' of apples).
-   - **Apply Shopping Adjustments:**
-     - **Piece-Based Items (e.g., vegetables, fruits):** If an ingredient group has quantities in both 'szt.' (pieces) *and* 'g'/'ml', use common sense weighting (e.g., 1 onion ≈ 130g, 1 apple ≈ 80g, 1 lemon ≈ 100g) to estimate how many additional pieces the 'g'/'ml' represents. Add this estimate to the 'szt.' count and round the *total* number of pieces *up* to the nearest whole number. The final unit for this ingredient should be 'szt.'.
-     - **Spices/Herbs/Small Items (e.g., salt, pepper, baking powder):** If the total summed quantity is expressed in 'g' or 'ml' and is relatively small (e.g., under 50g/ml), determine how many standard-sized packages are needed (assume typical spice jar ≈ 20g). Round *up* to the nearest whole package. The final unit should be 'opak.' (package). If the quantity is large, keep the unit as 'g' or 'ml'.
-     - **Liquids/Flour/Sugar/Other Bulk:** Keep the total summed quantity in 'g' or 'ml'.
-   - The goal is to have a single quantity and unit per ingredient name, reflecting what needs to be bought.
+6. **Consolidate Quantities:** For each ingredient group from the previous step:
+    - If the group contains only one ingredient entry, keep it as is.
+    - If the group contains multiple entries:
+        - First, standardize units: Use `handle_unknown_units` for any non-standard (like 'clove', 'pinch', 'can', 'cup') or non-piece ('szt.') units to get them into grams ('g') or milliliters ('ml'). If a unit is already 'g', 'ml', or 'szt.', keep it.
+        - Convert larger metric units to smaller ones (e.g., 1 kg -> 1000g, 1 l -> 1000ml).
+        - Now, consolidate based on shopping logic:
+            - If you have only grams ('g') or only milliliters ('ml'), sum them using `sum_quantities`. Final unit: 'g' or 'ml'.
+            - If you have pieces ('szt.') mixed with weights ('g') or volumes ('ml'): Estimate the weight/volume in terms of pieces (e.g., 1 large onion ≈ 150g, 1 medium apple ≈ 80g, 1 standard paprika ≈ 120g). Add this estimated piece count to any existing pieces. Round the FINAL total number of pieces UP to the nearest whole number. Final unit: 'szt.'. Use your judgment for reasonable estimations.
+            - If you have only pieces ('szt.'), sum them using `sum_quantities`. Final unit: 'szt.'.
+            - If after conversion you have small amounts (< 50g/ml) of things typically bought in packages (like spices, herbs, baking powder, yeast, potentially salt/sugar if very small amounts): Convert the total quantity to the number of standard packages needed (e.g., spice jar ≈ 20g, baking powder sachet ≈ 15g). Round UP to the nearest whole package. Final unit: 'opak.'.
+            - Keep track of the final consolidated quantity and unit for each ingredient.
+    - Use the `consolidate_units` tool. Pass the list of `Ingredient` objects for that specific ingredient name to the tool.
+    - The tool will return a single `ConsolidatedIngredientOutput` object containing the final shopping quantity and unit (e.g., szt., opak., g, ml).
 
-7. **Return Final Shopping List:** Use the `produce_final_result` tool to format the final list. Each item should have its Polish name, the calculated shopping quantity, and the final unit ('szt.', 'opak.', 'g', 'ml').
+7. **Final Shopping List:** Format the results into a final, user-friendly shopping list.
+    - The list should contain each ingredient with its final consolidated quantity and unit (szt., opak., g, ml).
+    - Use Polish names for ingredients.
+    - For each ingredient, use the name, quantity, and unit from the `ConsolidatedIngredientOutput` returned by `consolidate_units` in the previous step.
+    - Present the list clearly.
 
 Input Texts:
 {recipes_prompt}

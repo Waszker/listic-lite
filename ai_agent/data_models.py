@@ -27,6 +27,12 @@ class IngredientNamesOutput(BaseModel):
     )
 
 
+class ConsolidatedIngredientOutput(BaseModel):
+    name: str = Field(description="Unified ingredient name in Polish.")
+    quantity: float = Field(description="The final calculated quantity needed for shopping.")
+    unit: str = Field(description="The final unit for shopping (e.g., 'szt.', 'opak.', 'g', 'ml').")
+
+
 class UnitConversionOutput(BaseModel):
     quantity: float = Field(description="The numeric quantity after conversion.")
     unit: str = Field(description="The standard unit ('g' or 'ml').")

@@ -48,4 +48,4 @@ if __name__ == "__main__":
         "https://headbangerskitchen.com/indian-curry-chicken-curry/",
     ]
 
-    asyncio.run(run_agent(example_inputs))
+    asyncio.run(run_agent(example_inputs[3]))
