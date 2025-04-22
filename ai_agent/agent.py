@@ -66,6 +66,10 @@ Follow these steps precisely:
     - For each ingredient, use the name, quantity, and unit from the `ConsolidatedIngredientOutput` returned by `consolidate_units` in the previous step.
     - Present the list clearly.
 
+8. **Generate Audio:**
+    - Use the `generate_audio_for_list` tool to generate an audio file from the final shopping list.
+    - The audio file will be saved in the current directory with the name 'shopping_list.mp3'.
+
 Input Texts:
 {recipes_prompt}
 """

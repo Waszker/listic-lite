@@ -3,6 +3,9 @@ from collections import defaultdict
 from traceback import print_stack
 import json
 import logging
+import os
+from pathlib import Path
+from openai import AsyncOpenAI
 from langchain_core.tools import tool
 from langchain_core.output_parsers import JsonOutputParser
 from langchain.prompts import FewShotPromptTemplate, PromptTemplate
@@ -12,6 +15,7 @@ from ai_agent.data_models import Ingredient, IngredientsOutput, IngredientNamesO
 from ai_agent.tasks import fetch_recipe_from_url
 import re
 import traceback
+import settings
 
 # --- Predefined Examples for Unit Consolidation ---
 UNIT_CONSOLIDATION_EXAMPLES = [
@@ -56,6 +60,14 @@ UNIT_CONSOLIDATION_EXAMPLES = [
         "explanation": "1 kg (1000g) + 200g = 1200g. Convert kg to g and sum.",
     },
 ]
+
+
+# --- Initialize OpenAI Client (can be done once outside the tool if preferred) ---
+# Make sure OPENAI_API_KEY environment variable is set
+try:
+    openai_client = AsyncOpenAI(api_key=settings.env_settings.openai_api_key)
+except Exception as e:
+    raise Exception(f"Failed to initialize OpenAI client: {e}. Ensure OPENAI_API_KEY is set.")
 
 
 @tool
@@ -243,6 +255,45 @@ def sum_quantities(ingredient1: Ingredient, ingredient2: Ingredient) -> float:
         raise ValueError("Cannot parse quantity. Ensure both ingredients have valid numeric quantities.")
 
 
+@tool
+async def generate_audio_for_list(shopping_list_text: str, output_file_path: str = "shopping_list.mp3") -> str:
+    """
+    Generates an audio file from the provided shopping list text using OpenAI's Text-to-Speech (TTS) API.
+
+    Args:
+        shopping_list_text: The text content of the final shopping list.
+        output_file_path: The path (including filename) where the audio file should be saved. Defaults to 'shopping_list.mp3'.
+
+    Returns:
+        The absolute path to the generated audio file, or an error message if generation failed.
+    """
+    if not openai_client:
+        return "Error: OpenAI client not initialized. Check API key and logs."
+
+    try:
+        speech_file_path = Path(output_file_path)
+        # Ensure the directory exists
+        speech_file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        logging.info(f"Generating audio for shopping list to {speech_file_path}...")
+        response = await openai_client.audio.speech.create(
+            model="tts-1",  # Or "tts-1-hd" for higher quality
+            voice="alloy",  # Choose a voice: alloy, echo, fable, onyx, nova, shimmer
+            input=shopping_list_text,
+        )
+
+        # Save the audio stream to the file
+        response.stream_to_file(speech_file_path)
+
+        logging.info(f"Successfully generated audio file: {speech_file_path.absolute()}")
+        return str(speech_file_path.absolute())
+
+    except Exception as e:
+        logging.error(f"Error generating audio: {e}")
+        traceback.print_exc() # Print full traceback for debugging
+        return f"Error generating audio: {e}"
+
+
 tools = [
     fetch_recipes_from_urls,
     extract_ingredients,
@@ -250,4 +301,5 @@ tools = [
     consolidate_units,
     group_by_ingredient_name,
     sum_quantities,
+    generate_audio_for_list,
 ]
