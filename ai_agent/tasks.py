@@ -29,12 +29,7 @@ async def fetch_recipe_from_url(url: str) -> str:
         return f"Error: No content fetched from {url}"
 
     soup = BeautifulSoup(page_content, "html.parser")
-    recipe_content = (
-        soup.find(class_=lambda x: x and "recipe" in x.lower())
-        or soup.find(id=lambda x: x and "recipe" in x.lower())
-        or soup.find("article")
-        or soup.body
-    )
+    recipe_content = soup.body
     if not recipe_content:
         print(f"Specific recipe container not found for {url}, falling back to full body text.")
         return soup.get_text(separator="\n", strip=True)
