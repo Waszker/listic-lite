@@ -67,7 +67,7 @@ UNIT_CONSOLIDATION_EXAMPLES = [
 try:
     openai_client = AsyncOpenAI(api_key=settings.env_settings.openai_api_key)
 except Exception as e:
-    raise Exception(f"Failed to initialize OpenAI client: {e}. Ensure OPENAI_API_KEY is set.")
+    raise RuntimeError(f"Failed to initialize OpenAI client: {e}. Ensure OPENAI_API_KEY is set.")
 
 
 @tool
@@ -267,8 +267,7 @@ async def generate_audio_for_list(shopping_list_text: str, output_file_path: str
     Returns:
         The absolute path to the generated audio file, or an error message if generation failed.
     """
-    if not openai_client:
-        return "Error: OpenAI client not initialized. Check API key and logs."
+# Removed redundant check for openai_client.
 
     try:
         speech_file_path = Path(output_file_path)
