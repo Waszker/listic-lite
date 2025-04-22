@@ -276,9 +276,10 @@ async def generate_audio_for_list(shopping_list_text: str, output_file_path: str
 
         logging.info(f"Generating audio for shopping list to {speech_file_path}...")
         response = await openai_client.audio.speech.create(
-            model="tts-1",  # Or "tts-1-hd" for higher quality
+            model="gpt-4o-mini-tts",  # Or "tts-1-hd" for higher quality
             voice="alloy",  # Choose a voice: alloy, echo, fable, onyx, nova, shimmer
             input=shopping_list_text,
+            instructions="Generate a shopping list audio file, reading it in Polish language, in a friendly and conversational tone. Read abbreviations and acronyms in full, e.g. 'ml.' as 'mililitrów', 'g' as 'granów', 'szt.' as 'sztuk', 'opak.' as 'opakowań', etc.",
         )
 
         # Save the audio stream to the file
