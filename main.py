@@ -4,6 +4,8 @@ from ai_agent.agent import run_agent
 
 if __name__ == "__main__":
     example_inputs = [
+        "https://www.kwestiasmaku.com/przepis/zapiekane-rozki-z-tortilli-z-mielonym-miesem-serem-i-warzywami/",
+        "https://www.rozkoszny.pl/mazurek-cytrynowy-na-palonym-masle/",
         "https://www.kwestiasmaku.com/przepis/kurczak-w-sosie-curry/",
         """
         **Simple Pancake Recipe**
@@ -48,4 +50,4 @@ if __name__ == "__main__":
         "https://headbangerskitchen.com/indian-curry-chicken-curry/",
     ]
 
-    asyncio.run(run_agent(example_inputs[3:4]))
+    asyncio.run(run_agent(example_inputs[0:2]))
